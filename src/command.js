@@ -1,5 +1,24 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import {
+    getAllNotes,
+    newNote,
+    findNotes,
+    removeNote,
+    removeAllNotes,
+} from "./notes.js";
+
+const listNotes = (notes) => {
+    if (notes.length === 0) {
+        console.log("No notes show.");
+    }
+    notes.forEach((note) => {
+        console.log("id: ", note.id);
+        console.log("tags: ", note.tags.join(", "));
+        console.log("note: ", note.content);
+        console.log("\n");
+    });
+};
 
 yargs(hideBin(process.argv))
     .command(
@@ -11,8 +30,10 @@ yargs(hideBin(process.argv))
                 description: "The content of the note to create",
             });
         },
-        (argv) => {
-            console.log(argv.note);
+        async (argv) => {
+            const tags = argv.tags ? argv.tags.split(" ") : [];
+            const note = await newNote(argv.note, tags);
+            console.log(`New note added: ${JSON.stringify(note)}`);
         }
     )
     .option("tags", {
@@ -24,7 +45,10 @@ yargs(hideBin(process.argv))
         "all",
         "get all notes",
         () => {},
-        async (argv) => {}
+        async (argv) => {
+            const notes = await getAllNotes();
+            listNotes(notes);
+        }
     )
     .command(
         "find <filter>",
@@ -36,7 +60,10 @@ yargs(hideBin(process.argv))
                 type: "string",
             });
         },
-        async (argv) => {}
+        async (argv) => {
+            const matches = await findNotes(argv.filter);
+            listNotes(matches);
+        }
     )
     .command(
         "remove <id>",
@@ -47,7 +74,10 @@ yargs(hideBin(process.argv))
                 description: "The id of the note you want to remove",
             });
         },
-        async (argv) => {}
+        async (argv) => {
+            const id = await removeNote(argv.id);
+            console.log(`${id ? id : "No note"} removed.`);
+        }
     )
     .command(
         "web [port]",
@@ -65,7 +95,9 @@ yargs(hideBin(process.argv))
         "clean",
         "remove all notes",
         () => {},
-        async (argv) => {}
+        async (argv) => {
+            await removeAllNotes();
+        }
     )
     .demandCommand(1)
     .parse();
