@@ -1,1 +1,3 @@
-console.log("hello, world!")
+#!/usr/bin/env node
+
+import "./src/command.js";
